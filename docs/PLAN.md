@@ -132,9 +132,9 @@ Success: AI reply and board updates work end to end via the API.
 ## Part 10: Chat sidebar
 
 Substeps:
-- [ ] Sidebar chat widget (history, input, loading state) styled with the color scheme
-- [ ] Sends messages to `/api/chat`; renders replies
-- [ ] When the response includes a board update, the board refreshes automatically
+- [x] Sidebar chat widget (history, input, loading state) styled with the color scheme
+- [x] Sends messages to `/api/chat`; renders replies
+- [x] When the response includes a board update, the board refreshes automatically
 
 Tests: Vitest (send, render reply, refresh on update); Playwright with a mocked or stubbed AI response verifying board refresh.
 

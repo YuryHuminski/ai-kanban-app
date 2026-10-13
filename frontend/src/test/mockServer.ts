@@ -20,10 +20,20 @@ type Options = {
   loginOk?: boolean;
   /** Requests whose "METHOD url" starts with this string get a 400. */
   failOn?: string;
+  chatResponse?: {
+    message: string;
+    board: BoardData;
+    board_update?: unknown;
+  };
 };
 
 /** Replaces global fetch with a fake of the backend API. Returns the mock for assertions. */
-export const mockServer = ({ signedIn = true, loginOk = true, failOn }: Options = {}) => {
+export const mockServer = ({
+  signedIn = true,
+  loginOk = true,
+  failOn,
+  chatResponse,
+}: Options = {}) => {
   const fetchMock = vi.fn(async (url: string, init: RequestInit = {}) => {
     const method = init.method ?? "GET";
     const key = `${method} ${url}`;
@@ -39,6 +49,15 @@ export const mockServer = ({ signedIn = true, loginOk = true, failOn }: Options 
     if (key === "POST /api/login") return reply(loginOk);
     if (key === "POST /api/logout") return reply(true);
     if (key === "GET /api/board") return reply(true, structuredClone(testBoard));
+    if (key === "POST /api/chat") {
+      return reply(
+        true,
+        chatResponse ?? {
+          message: "Done.",
+          board: structuredClone(testBoard),
+        }
+      );
+    }
     if (key === "POST /api/cards") return reply(true, { id: "100", title: body.title, details: body.details }, 201);
     if (key.startsWith("PUT /api/cards/")) {
       return reply(true, { id: url.split("/").pop(), title: body.title, details: body.details });

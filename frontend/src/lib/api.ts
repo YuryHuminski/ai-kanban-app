@@ -8,6 +8,27 @@ const raw = (id: string) => id.replace(/^(col|card)-/, "");
 
 const toCard = (card: Card): Card => ({ ...card, id: withPrefix("card", card.id) });
 
+const normalizeBoard = (board: BoardData): BoardData => ({
+  columns: board.columns.map((column) => ({
+    ...column,
+    id: withPrefix("col", column.id),
+    cardIds: column.cardIds.map((id) => withPrefix("card", id)),
+  })),
+  cards: Object.fromEntries(
+    Object.values(board.cards).map((card) => [withPrefix("card", card.id), toCard(card)])
+  ),
+});
+
+export type ChatHistoryItem = {
+  role: "user" | "assistant";
+  content: string;
+};
+
+type ChatResponse = {
+  message: string;
+  board: BoardData;
+};
+
 const request = async (url: string, method = "GET", body?: unknown) => {
   const response = await fetch(url, {
     method,
@@ -22,16 +43,7 @@ const request = async (url: string, method = "GET", body?: unknown) => {
 
 export const fetchBoard = async (): Promise<BoardData> => {
   const board: BoardData = await request("/api/board");
-  return {
-    columns: board.columns.map((column) => ({
-      ...column,
-      id: withPrefix("col", column.id),
-      cardIds: column.cardIds.map((id) => withPrefix("card", id)),
-    })),
-    cards: Object.fromEntries(
-      Object.values(board.cards).map((card) => [withPrefix("card", card.id), toCard(card)])
-    ),
-  };
+  return normalizeBoard(board);
 };
 
 export const renameColumn = (columnId: string, title: string) =>
@@ -47,3 +59,11 @@ export const deleteCard = (cardId: string) => request(`/api/cards/${raw(cardId)}
 
 export const moveCardOnServer = (cardId: string, columnId: string, position: number) =>
   request(`/api/cards/${raw(cardId)}/move`, "POST", { column_id: raw(columnId), position });
+
+export const chat = async (
+  message: string,
+  history: ChatHistoryItem[]
+): Promise<{ message: string; board: BoardData }> => {
+  const response: ChatResponse = await request("/api/chat", "POST", { message, history });
+  return { message: response.message, board: normalizeBoard(response.board) };
+};

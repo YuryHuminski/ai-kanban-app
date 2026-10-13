@@ -29,11 +29,11 @@ const renderBoard = async (options?: Parameters<typeof mockServer>[0]) => {
 // Server ids are plain numbers; the frontend prefixes them (see lib/api.ts).
 const column = (id: string) => screen.getByTestId(`column-col-${id}`);
 
-const drag = (activeId: string, overId: string | null) => {
-  act(() => {
+const drag = async (activeId: string, overId: string | null) => {
+  await act(async () => {
     dndProps.onDragStart?.({ active: { id: activeId } } as dnd.DragStartEvent);
   });
-  act(() => {
+  await act(async () => {
     dndProps.onDragEnd?.({
       active: { id: activeId },
       over: overId ? { id: overId } : null,
@@ -172,7 +172,7 @@ describe("cards", () => {
 describe("drag and drop", () => {
   it("moves a card to another column and tells the API the column and position", async () => {
     const fetchMock = await renderBoard();
-    drag("card-1", "col-3"); // drop on the empty In Progress column
+    await drag("card-1", "col-3"); // drop on the empty In Progress column
     expect(within(column("3")).getByTestId("card-card-1")).toBeInTheDocument();
     expect(requestsTo(fetchMock, "POST /api/cards/1/move")).toEqual([
       { column_id: "3", position: 0 },
@@ -182,7 +182,7 @@ describe("drag and drop", () => {
   it("sends the position when dropped on a card in another column", async () => {
     const fetchMock = await renderBoard();
     // Card 3 and column 3 share the server id "3"; the prefixes keep them apart.
-    drag("card-1", "card-3");
+    await drag("card-1", "card-3");
     expect(requestsTo(fetchMock, "POST /api/cards/1/move")).toEqual([
       { column_id: "2", position: 0 },
     ]);
@@ -190,7 +190,7 @@ describe("drag and drop", () => {
 
   it("reorders within a column", async () => {
     const fetchMock = await renderBoard();
-    drag("card-2", "card-1");
+    await drag("card-2", "card-1");
     expect(requestsTo(fetchMock, "POST /api/cards/2/move")).toEqual([
       { column_id: "1", position: 0 },
     ]);
@@ -198,16 +198,78 @@ describe("drag and drop", () => {
 
   it("makes no request when dropped outside or onto itself", async () => {
     const fetchMock = await renderBoard();
-    drag("card-1", null);
-    drag("card-1", "card-1");
+    await drag("card-1", null);
+    await drag("card-1", "card-1");
     expect(requestsTo(fetchMock, "POST /api/cards/1/move")).toHaveLength(0);
+  });
+});
+
+describe("chat sidebar", () => {
+  it("sends a message, renders the reply, and refreshes the board from the response", async () => {
+    const fetchMock = await renderBoard({
+      chatResponse: {
+        message: "Created it.",
+        board: {
+          columns: [
+            { id: "1", title: "Backlog", cardIds: ["1", "2", "77"] },
+            { id: "2", title: "Discovery", cardIds: ["3"] },
+            { id: "3", title: "In Progress", cardIds: [] },
+            { id: "4", title: "Review", cardIds: [] },
+            { id: "5", title: "Done", cardIds: [] },
+          ],
+          cards: {
+            "1": { id: "1", title: "Align roadmap themes", details: "Draft themes." },
+            "2": { id: "2", title: "Gather customer signals", details: "Review notes." },
+            "3": { id: "3", title: "Prototype analytics view", details: "" },
+            "77": { id: "77", title: "AI card", details: "From chat" },
+          },
+        },
+      },
+    });
+
+    await userEvent.type(screen.getByLabelText("Message"), "Create a card in Backlog");
+    await userEvent.click(screen.getByRole("button", { name: "Send" }));
+
+    expect(requestsTo(fetchMock, "POST /api/chat")).toEqual([
+      { message: "Create a card in Backlog", history: [] },
+    ]);
+    expect(await screen.findByTestId("chat-message-user")).toHaveTextContent(
+      "Create a card in Backlog"
+    );
+    expect(await screen.findByTestId("chat-message-assistant")).toHaveTextContent("Created it.");
+    expect(within(column("1")).getByTestId("card-card-77")).toBeInTheDocument();
+  });
+
+  it("shows an error when sending fails", async () => {
+    await renderBoard({ failOn: "POST /api/chat" });
+
+    await userEvent.type(screen.getByLabelText("Message"), "Hello");
+    await userEvent.click(screen.getByRole("button", { name: "Send" }));
+
+    expect(await screen.findByText("Could not send the message. Try again.")).toBeInTheDocument();
+  });
+
+  it("sends on Enter and keeps newline on Shift+Enter", async () => {
+    const fetchMock = await renderBoard();
+    const input = screen.getByLabelText("Message");
+
+    await userEvent.type(input, "Line 1");
+    await userEvent.keyboard("{Shift>}{Enter}{/Shift}");
+    await userEvent.type(input, "Line 2");
+    expect(input).toHaveValue("Line 1\nLine 2");
+    expect(requestsTo(fetchMock, "POST /api/chat")).toHaveLength(0);
+
+    await userEvent.keyboard("{Enter}");
+    expect(requestsTo(fetchMock, "POST /api/chat")).toEqual([
+      { message: "Line 1\nLine 2", history: [] },
+    ]);
   });
 });
 
 describe("failures", () => {
   it("shows an error and reloads the board when an action fails", async () => {
     const fetchMock = await renderBoard({ failOn: "POST /api/cards/1/move" });
-    drag("card-1", "col-3");
+    await drag("card-1", "col-3");
     expect(await screen.findByText(/something went wrong/i)).toBeInTheDocument();
     await waitFor(() => expect(requestsTo(fetchMock, "GET /api/board")).toHaveLength(2));
     // the reload restores the server's order
