@@ -120,10 +120,10 @@ Success: live "2+2" call returns a correct answer.
 ## Part 9: Structured outputs with board context
 
 Substeps:
-- [ ] `POST /api/chat` takes the user message and history; sends board JSON, history and message to the AI
-- [ ] Define response schema: `{ message: string, board_update: optional (create/edit/move/delete card operations) }`
-- [ ] Validate and apply the update to the DB, return message and fresh board
-- [ ] Update `backend/AGENTS.md`
+- [x] `POST /api/chat` takes the user message and history; sends board JSON, history and message to the AI
+- [x] Define response schema: `{ message: string, board_update: optional (create/edit/move/delete card operations) }`
+- [x] Validate and apply the update to the DB, return message and fresh board
+- [x] Update `backend/AGENTS.md`
 
 Tests: pytest with mocked AI for reply only, create, edit, move, multiple operations, invalid output, and unknown ids; one live test.
 

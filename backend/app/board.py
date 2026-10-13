@@ -78,8 +78,7 @@ def card_json(row: sqlite3.Row) -> dict:
     return {"id": str(row["id"]), "title": row["title"], "details": row["details"]}
 
 
-@router.get("/board")
-def get_board(user_id: int = Depends(current_user_id), db: sqlite3.Connection = Depends(get_db)):
+def build_board_state(db: sqlite3.Connection, user_id: int) -> dict:
     columns = db.execute(
         "SELECT c.id, c.title FROM columns c JOIN boards b ON b.id = c.board_id "
         "WHERE b.user_id = ? ORDER BY c.position",
@@ -102,6 +101,11 @@ def get_board(user_id: int = Depends(current_user_id), db: sqlite3.Connection = 
         ],
         "cards": {str(card["id"]): card_json(card) for card in cards},
     }
+
+
+@router.get("/board")
+def get_board(user_id: int = Depends(current_user_id), db: sqlite3.Connection = Depends(get_db)):
+    return build_board_state(db, user_id)
 
 
 @router.put("/columns/{column_id}")
