@@ -1,4 +1,4 @@
-import { createId, moveCard, type Column } from "@/lib/kanban";
+import { moveCard, type Column } from "@/lib/kanban";
 
 describe("moveCard", () => {
   const baseColumns: Column[] = [
@@ -40,13 +40,5 @@ describe("moveCard", () => {
   it("inserts before the target card in another column", () => {
     const result = moveCard(baseColumns, "card-1", "card-3");
     expect(result[1].cardIds).toEqual(["card-1", "card-3"]);
-  });
-});
-
-describe("createId", () => {
-  it("uses the prefix and is unique", () => {
-    const first = createId("card");
-    expect(first.startsWith("card-")).toBe(true);
-    expect(createId("card")).not.toBe(first);
   });
 });

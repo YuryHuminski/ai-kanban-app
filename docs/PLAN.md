@@ -97,10 +97,10 @@ Success: all routes tested.
 ## Part 7: Frontend + Backend
 
 Substeps:
-- [ ] Frontend API client; board loaded from `/api/board`
-- [ ] All actions (rename, add, edit, delete, move) call the API
-- [ ] Loading and error states
-- [ ] Remove in-memory `initialData` use from the app
+- [x] Frontend API client; board loaded from `/api/board`
+- [x] All actions (rename, add, edit, delete, move) call the API
+- [x] Loading and error states
+- [x] Remove in-memory `initialData` use from the app
 
 Tests: Vitest with mocked fetch; Playwright against the container, including persistence across reload and after container restart (DB volume).
 

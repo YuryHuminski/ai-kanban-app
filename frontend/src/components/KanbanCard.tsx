@@ -93,7 +93,7 @@ export const KanbanCard = ({ card, onDelete, onUpdate }: KanbanCardProps) => {
               {card.title}
             </h4>
             <p className="mt-2 text-sm leading-6 text-[var(--gray-text)]">
-              {card.details}
+              {card.details || "No details yet."}
             </p>
           </div>
           <div className="flex flex-col items-end">

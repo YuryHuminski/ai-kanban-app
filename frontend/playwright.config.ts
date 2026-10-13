@@ -5,6 +5,8 @@ import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
   testDir: "./tests",
   timeout: 60_000,
+  // All tests share one database (the app under test), so they must not run in parallel.
+  workers: 1,
   expect: {
     timeout: 10_000,
   },
