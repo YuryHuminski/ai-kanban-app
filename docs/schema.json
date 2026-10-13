@@ -1,0 +1,61 @@
+{
+  "database": "SQLite",
+  "pragmas": ["foreign_keys = ON"],
+  "tables": {
+    "users": {
+      "columns": {
+        "id": { "type": "INTEGER", "primary_key": true, "autoincrement": true },
+        "username": { "type": "TEXT", "not_null": true, "unique": true }
+      }
+    },
+    "boards": {
+      "columns": {
+        "id": { "type": "INTEGER", "primary_key": true, "autoincrement": true },
+        "user_id": {
+          "type": "INTEGER",
+          "not_null": true,
+          "unique": true,
+          "references": "users(id)",
+          "on_delete": "CASCADE"
+        },
+        "name": { "type": "TEXT", "not_null": true }
+      },
+      "notes": "unique(user_id) enforces one board per user for the MVP; drop it to allow several boards later"
+    },
+    "columns": {
+      "columns": {
+        "id": { "type": "INTEGER", "primary_key": true, "autoincrement": true },
+        "board_id": {
+          "type": "INTEGER",
+          "not_null": true,
+          "references": "boards(id)",
+          "on_delete": "CASCADE"
+        },
+        "title": { "type": "TEXT", "not_null": true },
+        "position": { "type": "INTEGER", "not_null": true }
+      },
+      "indexes": [{ "name": "idx_columns_board", "columns": ["board_id", "position"] }]
+    },
+    "cards": {
+      "columns": {
+        "id": { "type": "INTEGER", "primary_key": true, "autoincrement": true },
+        "column_id": {
+          "type": "INTEGER",
+          "not_null": true,
+          "references": "columns(id)",
+          "on_delete": "CASCADE"
+        },
+        "title": { "type": "TEXT", "not_null": true },
+        "details": { "type": "TEXT", "not_null": true, "default": "''" },
+        "position": { "type": "INTEGER", "not_null": true }
+      },
+      "indexes": [{ "name": "idx_cards_column", "columns": ["column_id", "position"] }]
+    }
+  },
+  "seed": {
+    "user": { "username": "user" },
+    "board": { "name": "My Board" },
+    "columns": ["Backlog", "Discovery", "In Progress", "Review", "Done"],
+    "cards": []
+  }
+}

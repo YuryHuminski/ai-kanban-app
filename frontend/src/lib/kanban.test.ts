@@ -1,4 +1,4 @@
-import { moveCard, type Column } from "@/lib/kanban";
+import { createId, moveCard, type Column } from "@/lib/kanban";
 
 describe("moveCard", () => {
   const baseColumns: Column[] = [
@@ -21,5 +21,32 @@ describe("moveCard", () => {
     const result = moveCard(baseColumns, "card-1", "col-b");
     expect(result[0].cardIds).toEqual(["card-2"]);
     expect(result[1].cardIds).toEqual(["card-3", "card-1"]);
+  });
+
+  it("moves a card to the end of its own column when dropped on the column", () => {
+    const result = moveCard(baseColumns, "card-1", "col-a");
+    expect(result[0].cardIds).toEqual(["card-2", "card-1"]);
+  });
+
+  it("returns columns unchanged for unknown ids", () => {
+    expect(moveCard(baseColumns, "missing", "card-1")).toBe(baseColumns);
+    expect(moveCard(baseColumns, "card-1", "missing")).toBe(baseColumns);
+  });
+
+  it("returns columns unchanged when a card is dropped on itself", () => {
+    expect(moveCard(baseColumns, "card-1", "card-1")).toBe(baseColumns);
+  });
+
+  it("inserts before the target card in another column", () => {
+    const result = moveCard(baseColumns, "card-1", "card-3");
+    expect(result[1].cardIds).toEqual(["card-1", "card-3"]);
+  });
+});
+
+describe("createId", () => {
+  it("uses the prefix and is unique", () => {
+    const first = createId("card");
+    expect(first.startsWith("card-")).toBe(true);
+    expect(createId("card")).not.toBe(first);
   });
 });

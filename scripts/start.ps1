@@ -4,5 +4,5 @@ Set-Location (Join-Path $PSScriptRoot "..")
 
 docker build -t pm-app .
 docker rm -f pm-app 2>$null
-docker run -d --name pm-app -p 8000:8000 --env-file .env pm-app
+docker run -d --name pm-app -p 8000:8000 -v pm-data:/app/data --env-file .env pm-app
 Write-Host "Running at http://localhost:8000"

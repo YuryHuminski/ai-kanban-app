@@ -1,11 +1,26 @@
+import os
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-STATIC_DIR = Path(__file__).parent.parent / "static"
+from app.auth import router as auth_router
+from app.board import router as board_router
+from app.db import init_db
 
-app = FastAPI()
+STATIC_DIR = Path(os.environ.get("STATIC_DIR", Path(__file__).parent.parent / "static"))
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    init_db()
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
+app.include_router(auth_router)
+app.include_router(board_router)
 
 
 @app.get("/api/hello")

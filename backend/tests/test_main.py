@@ -14,4 +14,4 @@ def test_hello():
 def test_index_served():
     response = client.get("/")
     assert response.status_code == 200
-    assert "Hello world" in response.text
+    assert "Kanban Studio" in response.text
