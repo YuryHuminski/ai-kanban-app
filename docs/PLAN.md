@@ -14,6 +14,7 @@ Decisions agreed with the user:
 - Database: normalized SQLite tables (users, boards, columns, cards) plus a JSON document describing the schema.
 - `OPENROUTER_API_KEY` is passed at runtime via `--env-file`, never baked into the image.
 - Frontend audited before Part 3 (see `frontend/AGENTS.md`).
+- Part 8 AI connectivity: rework existing AI files as needed, do not mock the model call, keep connectivity test required, and accept either `4` or `four` as success for the "2+2" check.
 
 ## Frontend audit summary
 
@@ -109,10 +110,10 @@ Success: changes persist across reloads and restarts; all tests pass.
 ## Part 8: AI connectivity
 
 Substeps:
-- [ ] Backend OpenRouter client (`openai/gpt-oss-120b`), key from `OPENROUTER_API_KEY`
-- [ ] Simple endpoint or test that asks "2+2" and returns the answer
+- [x] Backend OpenRouter client (`openai/gpt-oss-120b`), key from `OPENROUTER_API_KEY`
+- [x] Simple endpoint or test that asks "2+2" and returns the answer
 
-Tests: pytest with the client mocked; one live connectivity test (skipped when no key) asserting the answer contains "4".
+Tests: required live pytest connectivity check (no mocking) asserting the answer contains `4` or `four`.
 
 Success: live "2+2" call returns a correct answer.
 

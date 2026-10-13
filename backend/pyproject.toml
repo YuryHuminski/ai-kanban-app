@@ -4,12 +4,13 @@ version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi",
+    "openai",
     "uvicorn",
 ]
 
 [dependency-groups]
 dev = [
-    "httpx2",
+    "httpx",
     "pytest",
     "pytest-cov",
 ]
